@@ -4,18 +4,24 @@ import microsoft.exchange.webservices.data.autodiscover.IAutodiscoverRedirection
 import microsoft.exchange.webservices.data.core.ExchangeService;
 import microsoft.exchange.webservices.data.core.PropertySet;
 import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion;
+import microsoft.exchange.webservices.data.core.enumeration.property.BasePropertySet;
 import microsoft.exchange.webservices.data.core.enumeration.property.WellKnownFolderName;
+import microsoft.exchange.webservices.data.core.enumeration.search.FolderTraversal;
 import microsoft.exchange.webservices.data.core.enumeration.service.DeleteMode;
 import microsoft.exchange.webservices.data.core.exception.service.local.ServiceLocalException;
 import microsoft.exchange.webservices.data.core.service.folder.Folder;
 import microsoft.exchange.webservices.data.core.service.item.EmailMessage;
 import microsoft.exchange.webservices.data.core.service.item.Item;
+import microsoft.exchange.webservices.data.core.service.schema.FolderSchema;
 import microsoft.exchange.webservices.data.credential.ExchangeCredentials;
 import microsoft.exchange.webservices.data.credential.WebCredentials;
 import microsoft.exchange.webservices.data.property.complex.Attachment;
 import microsoft.exchange.webservices.data.property.complex.EmailAddress;
 import microsoft.exchange.webservices.data.property.complex.FileAttachment;
+import microsoft.exchange.webservices.data.property.complex.FolderId;
+import microsoft.exchange.webservices.data.search.FindFoldersResults;
 import microsoft.exchange.webservices.data.search.FindItemsResults;
+import microsoft.exchange.webservices.data.search.FolderView;
 import microsoft.exchange.webservices.data.search.ItemView;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.FilenameUtils;
@@ -61,7 +67,7 @@ public class GetMail {
      * @return List<Item>
      *
      */
-    private static List<Item> getItems(String date, int no_of_mails, String mailID, String password) {
+    private static List<Item> getItems(String date, int no_of_mails, String mailID, String password, String folderName) {
         ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
         ExchangeCredentials credentials = new WebCredentials(mailID, password);
         service.setCredentials(credentials);
@@ -71,8 +77,27 @@ public class GetMail {
         try {
             service.autodiscoverUrl(mailID, new RedirectionUrlCallback());
 
+
+            FolderView folderView = new FolderView(100);
+
+            //Just Initializing with default Value which is Inbox
+            FolderId folderId = FolderId.getFolderIdFromWellKnownFolderName(WellKnownFolderName.Inbox);
+
+            folderView.setTraversal(FolderTraversal.Deep);
+            FindFoldersResults findFolderResults = service.findFolders(WellKnownFolderName.Root, folderView);
+            //find specific folder
+            for(Folder f : findFolderResults)
+            {
+                //Find folderId of the folder folderName
+                if (f.getDisplayName() == folderName){
+                    folderId = f.getId();
+                }
+
+            }
+
+
             // Bind to the Inbox.
-            Folder inbox = Folder.bind(service, WellKnownFolderName.Inbox);
+            Folder inbox = Folder.bind(service, folderId);
             inbox.getPermissions();
             ItemView view = new ItemView(no_of_mails);
             findResults = service.findItems(inbox.getId(),view);
@@ -82,6 +107,16 @@ public class GetMail {
             e.printStackTrace();
             logger.log(Level.SEVERE,e.toString());
         }
+
+
+        try {
+
+        }
+        catch (Exception e) {
+
+        }
+
+
 
         List<Item> itemList = new ArrayList<Item>();
 
@@ -122,12 +157,12 @@ public class GetMail {
      * @return List<JSONObject>
      *
      */
-    public static List<JSONObject> readMailFromInbox(String date, int no_of_mails, String mailID, String password) {
+    public static List<JSONObject> readMailFromInbox(String date, int no_of_mails, String mailID, String password, String folderName) {
 
         long st = System.currentTimeMillis();
         logger.info("Start time::"+st);
 
-        List<Item> findResults = getItems(date,no_of_mails,mailID,password);
+        List<Item> findResults = getItems(date, no_of_mails, mailID, password, folderName);
 
         List<JSONObject> jsonList = new ArrayList<JSONObject>();
 
@@ -161,9 +196,9 @@ public class GetMail {
      *
      */
 
-    public static boolean deleteMailFromInbox(String date, int no_of_mails, String mailID, String password) throws Exception {
+    public static boolean deleteMailFromInbox(String date, int no_of_mails, String mailID, String password, String folderName) throws Exception {
 
-        List<Item> findResults = getItems(date, no_of_mails,mailID,password);
+        List<Item> findResults = getItems(date, no_of_mails, mailID, password, folderName);
 
         for (Item item : findResults) {
 

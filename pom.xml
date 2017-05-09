@@ -113,7 +113,6 @@
                 <version>${javax.ws.rs-api.version}</version>
             </dependency>
 
-
             <dependency>
                 <groupId>net.sf.jsr107cache</groupId>
                 <artifactId>jsr107cache</artifactId>
@@ -175,16 +174,6 @@
                 <artifactId>univocity-parsers</artifactId>
                 <version>${univocity-parsers.version}</version>
             </dependency>
-
-
-
-            <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk</artifactId>
-                <version>${aws-java-sdk.version}</version>
-            </dependency>
-
-
 
             <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
             <dependency>
