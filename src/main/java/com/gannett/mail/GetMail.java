@@ -89,7 +89,7 @@ public class GetMail {
             for(Folder f : findFolderResults)
             {
                 //Find folderId of the folder folderName
-                if (f.getDisplayName() == folderName){
+                if (f.getDisplayName().equals(folderName)){
                     folderId = f.getId();
                 }
 
