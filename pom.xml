@@ -46,7 +46,7 @@
                             <manifest>
                                 <addClasspath>true</addClasspath>
                                 <classpathPrefix>lib/</classpathPrefix>
-                                <mainClass>com.gannett.mail.GetMail</mainClass>
+                                <mainClass>com.gannett.mail.MSExchangeEmailService</mainClass>
                             </manifest>
                         </archive>
                     </configuration>
@@ -83,7 +83,7 @@
                     <configuration>
                         <archive>
                             <manifest>
-                                <mainClass>com.gannett.mail.GetMail</mainClass>
+                                <mainClass>com.gannett.mail.MSExchangeEmailService</mainClass>
                             </manifest>
                         </archive>
                         <descriptorRefs>

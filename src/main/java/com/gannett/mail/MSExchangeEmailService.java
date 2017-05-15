@@ -42,9 +42,9 @@ import java.util.logging.Logger;
  * Created by dmurugan on 4/5/17.
  *
  */
-public class GetMail {
+public class MSExchangeEmailService {
 
-    private static Logger logger = Logger.getLogger("GetMail");
+    private static Logger logger = Logger.getLogger("MSExchangeEmailService");
 
     private static class RedirectionUrlCallback implements IAutodiscoverRedirectionUrl {
         /**
@@ -72,13 +72,13 @@ public class GetMail {
         ExchangeCredentials credentials = new WebCredentials(mailID, password);
         service.setCredentials(credentials);
 
-        FindItemsResults<Item> findResults = new FindItemsResults<Item>();
+        FindItemsResults<Item> emailList = new FindItemsResults<Item>();
 
         try {
             service.autodiscoverUrl(mailID, new RedirectionUrlCallback());
 
 
-            FolderView folderView = new FolderView(100);
+            FolderView folderView = new FolderView(500);
 
             //Just Initializing with default Value which is Inbox
             FolderId folderId = FolderId.getFolderIdFromWellKnownFolderName(WellKnownFolderName.Inbox);
@@ -91,6 +91,7 @@ public class GetMail {
                 //Find folderId of the folder folderName
                 if (f.getDisplayName().equals(folderName)){
                     folderId = f.getId();
+                    //break;
                 }
 
             }
@@ -98,10 +99,10 @@ public class GetMail {
 
             // Bind to the Inbox.
             Folder inbox = Folder.bind(service, folderId);
-            inbox.getPermissions();
+            //inbox.getPermissions();
             ItemView view = new ItemView(no_of_mails);
-            findResults = service.findItems(inbox.getId(),view);
-            service.loadPropertiesForItems(findResults, PropertySet.FirstClassProperties);
+            emailList = service.findItems(inbox.getId(),view);
+            service.loadPropertiesForItems(emailList, PropertySet.FirstClassProperties);
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -109,18 +110,9 @@ public class GetMail {
         }
 
 
-        try {
-
-        }
-        catch (Exception e) {
-
-        }
-
-
-
         List<Item> itemList = new ArrayList<Item>();
 
-        for (Item item : findResults.getItems()) {
+        for (Item item : emailList.getItems()) {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DATE, -1);
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -157,7 +149,7 @@ public class GetMail {
      * @return List<JSONObject>
      *
      */
-    public static List<JSONObject> readMailFromInbox(String date, int no_of_mails, String mailID, String password, String folderName) {
+    public static List<JSONObject> readMail(String date, int no_of_mails, String mailID, String password, String folderName) {
 
         long st = System.currentTimeMillis();
         logger.info("Start time::"+st);
@@ -272,14 +264,15 @@ public class GetMail {
         }
         json.put("toBCCAddress", bccAddress);
         json.put("toBCCRecipients", bccRecipients);
-        Iterator it = item.getCategories().getIterator();
+        Iterator iterator = item.getCategories().getIterator();
         String categories = "";
-        while(it.hasNext()) {
-            categories +=":"+it.next().toString();
+        while(iterator.hasNext()) {
+            categories +=":"+iterator.next().toString();
         }
         json.put("Categories",categories);
         json.put("Importance", item.getImportance());
-
+        JSONObject temp_json = new JSONObject();
+        int i = 0;
         for (Attachment attachment : item.getAttachments()) {
             try {
                 attachment.load();
@@ -287,8 +280,13 @@ public class GetMail {
 
                 json.put("attachmentName", attachment.getName());
                 String extension  = FilenameUtils.getExtension(attachment.getName());
-                if (extension.equals("txt") || extension.equals("doc") || extension.equals("docx"))
-                    json.put("attachmentContent", new String(((FileAttachment) attachment).getContent(), "UTF-8"));
+
+                if (extension.equals("txt") || extension.equals("doc") || extension.equals("docx")) {
+                    temp_json.put("attachmentContent-"+i, new String(((FileAttachment) attachment).getContent(), "UTF-8"));
+                    json.put("attachmentContent",temp_json);
+                    i++;
+                }
+
             }
             catch (Exception e){
                 e.printStackTrace();
