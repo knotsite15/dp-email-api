@@ -16,7 +16,7 @@ public class TestGetMail {
 
 
         //Date is hardcoded - This is a part of unit testing - change the date,mailID and mail password on unit testing
-        List<JSONObject> list = MSExchangeEmailService.readMail("2017-05-15",1000,"mobfeedtst@gannett.com","*****","Gannett2017");
+        List<JSONObject> list = MSExchangeEmailService.readMail("2017-05-15",1000,"mobfeedtst@gannett.com","*****","*****");
         System.out.println(list);
 
         assert true;
